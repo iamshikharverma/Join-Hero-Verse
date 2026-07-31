@@ -1,0 +1,6 @@
+{
+  "name": "JoinHeroVerse",
+  "description": "An empowering web platform showcasing underprivileged children as legendary comic book heroes, encouraging them to believe in their dreams and potential.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
