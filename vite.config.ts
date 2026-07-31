@@ -5,6 +5,7 @@ import {defineConfig} from 'vite';
 
 export default defineConfig(() => {
   return {
+    base: '/Join-Hero-Verse/',
     plugins: [react(), tailwindcss()],
     resolve: {
       alias: {
