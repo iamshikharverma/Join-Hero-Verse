@@ -6,14 +6,11 @@
 import { useState } from 'react';
 import { X } from 'lucide-react';
 import { HeroCard } from './components/HeroCard';
-import { UploadForm } from './components/UploadForm';
 import { heroes } from './data';
 import { City } from './types';
 
 export default function App() {
   const [selectedCity, setSelectedCity] = useState<City | 'All'>('All');
-  const [refresh, setRefresh] = useState(0);
-  const [showUpload, setShowUpload] = useState(false);
   const [showVision, setShowVision] = useState(false);
   const [showContact, setShowContact] = useState(false);
 
@@ -55,21 +52,6 @@ export default function App() {
           </button>
         ))}
       </div>
-      
-      <div className="flex justify-center mb-12">
-        <button 
-          onClick={() => setShowUpload(!showUpload)}
-          className="bg-yellow-400 border-4 border-black px-6 py-3 sm:px-8 sm:py-4 font-black uppercase text-lg shadow-[4px_4px_0_rgba(0,0,0,1)] sm:shadow-[6px_6px_0_rgba(0,0,0,1)] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none transition-all"
-        >
-          {showUpload ? 'Close Form' : 'Upload Your Hero Form'}
-        </button>
-      </div>
-
-      {showUpload && (
-        <div className="max-w-2xl mx-auto mb-12">
-          <UploadForm onHeroAdded={() => { setRefresh(r => r + 1); setShowUpload(false); }} />
-        </div>
-      )}
       
       {showVision && (
         <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4">

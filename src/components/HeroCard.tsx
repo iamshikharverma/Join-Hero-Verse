@@ -31,12 +31,9 @@ export const HeroCard: FC<HeroCardProps> = ({ hero }) => {
 
       <div className="mb-4">
         <h3 className="font-black uppercase text-xs tracking-widest border-b-2 border-white/30 pb-1">Mission:</h3>
-        <p className="text-sm italic font-medium leading-tight">"{hero.mission}"</p>
+        <p className="text-sm italic font-medium leading-tight">{hero.mission}</p>
       </div>
 
-      <div className="border-t-2 border-white/30 pt-4 mt-auto">
-        <p className="text-xs font-bold uppercase italic">" {hero.message} "</p>
-      </div>
     </motion.div>
   );
 };
