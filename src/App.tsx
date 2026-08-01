@@ -13,6 +13,7 @@ export default function App() {
   const [selectedCity, setSelectedCity] = useState<City | 'All'>('All');
   const [showVision, setShowVision] = useState(false);
   const [showContact, setShowContact] = useState(false);
+  const [showGame, setShowGame] = useState(false);
 
   const getFilteredHeroes = (selectedCity: City | 'All') => {
     return selectedCity === 'All' 
@@ -36,9 +37,32 @@ export default function App() {
           >
             {showVision ? 'Close Vision' : 'Our Vision at Hero Verse'}
           </button>
+          <button
+            onClick={() => setShowGame(true)}
+            className="bg-yellow-400 text-black border-4 border-black px-6 py-3 sm:px-8 sm:py-4 font-black uppercase text-lg sm:text-xl shadow-[4px_4px_0_rgba(0,0,0,1)] sm:shadow-[6px_6px_0_rgba(0,0,0,1)] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none transition-all"
+          >
+            Play Hero Verse Game
+          </button>
         </div>
       </header>
       
+      {showGame && (
+        <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center">
+          <div className="relative w-full h-full p-4 sm:p-8">
+            <button
+              onClick={() => setShowGame(false)}
+              className="absolute top-4 right-4 p-2 bg-black text-yellow-400 hover:bg-red-600 transition-colors z-50"
+            >
+              <X size={24} />
+            </button>
+            <iframe 
+              src="/game.html" 
+              className="w-full h-full border-4 border-black shadow-[12px_12px_0_rgba(0,0,0,1)]"
+              title="Hero Verse Game"
+            />
+          </div>
+        </div>
+      )}
       <div className="flex flex-wrap justify-center gap-2 sm:gap-4 mb-12">
         {cities.map((city) => (
           <button
@@ -96,14 +120,23 @@ export default function App() {
             </button>
             <h2 className="text-2xl sm:text-4xl font-black uppercase mb-6 italic text-red-600 pr-12">Contact Us</h2>
             <p className="text-base sm:text-lg font-bold mb-4">
-              Hello! I'm Shikhar Verma, an amateur technology enthusiast and the founder of Hero Verse. This project is a solo labor of love, built to bridge the digital divide and empower children through tech.
+              Hello! I'm Shikhar Verma, the founder of Hero Verse. This is a deeply personal project I work on besides preparing for UPSC Civil Services and developing tools to make the exam fun, I feel I too am part of the Hero Verse I've created when I teach kids about technology through my superpowers of Honesty, Kindness and Making People Laugh.
             </p>
             <p className="text-base sm:text-lg font-bold mb-4">
-              I believe we all have a part to play in changing the world. Whether you want to collaborate, support the mission, or just say hello, I'd love to hear from you.
+              I believe we all have superpowers and a part to play in changing the world. Whether you want to collaborate, support the mission, or just say hello, I'd love to hear from you.
             </p>
-            <div className="bg-yellow-400 border-4 border-black p-4 font-bold space-y-2">
-              <p>Email: <a href="mailto:iamshikharverma@gmail.com" className="underline">iamshikharverma@gmail.com</a></p>
-              <p>Support/Collab UPI: 8830117992@ptaxis</p>
+            <p className="text-base sm:text-lg font-bold italic mb-6">
+              "Isn't the idea of 'never give up' one of them things we always talk about in sports? And shouldn't that apply to people too? And it ain’t always easy, But neither is growing up without someone believing in you." - Ted Lasso
+            </p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="bg-yellow-400 border-4 border-black p-4 font-bold">
+                <p className="text-xs uppercase tracking-wider mb-1">Email</p>
+                <a href="mailto:iamshikharverma@gmail.com" className="underline text-lg">iamshikharverma@gmail.com</a>
+              </div>
+              <div className="bg-yellow-400 border-4 border-black p-4 font-bold">
+                <p className="text-xs uppercase tracking-wider mb-1">Support UPI</p>
+                <p className="text-lg">8830117992@ptaxis</p>
+              </div>
             </div>
           </div>
         </div>

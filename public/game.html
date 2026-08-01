@@ -1,0 +1,1917 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>HeroVerse: Rise of a Hero</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Bangers&family=Poppins:wght@400;600;700;800&display=swap"
+    rel="stylesheet">
+  <style>
+    /* ============================================================
+     BASIC RESET
+     ============================================================ */
+    * {
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100%;
+      background: #060814;
+      overflow: hidden;
+      font-family: 'Poppins', sans-serif;
+      color: #fff;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    #gameWrap {
+      position: relative;
+      width: 100vw;
+      height: 100vh;
+      overflow: hidden;
+      background: #000;
+    }
+
+    canvas#game {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+
+    .comic-title {
+      font-family: 'Bangers', cursive;
+      letter-spacing: 2px;
+      text-shadow: 3px 3px 0 #000, -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000;
+    }
+
+    /* ============================================================
+     OVERLAY SCREENS
+     ============================================================ */
+    .overlay {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      background: radial-gradient(circle at 50% 20%, #1b2140 0%, #060814 70%);
+      z-index: 30;
+      padding: 20px;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    .panel {
+      background: linear-gradient(160deg, #141a33, #0a0e1e);
+      border: 4px solid #ffd23f;
+      border-radius: 20px;
+      box-shadow: 0 0 40px rgba(255, 210, 63, 0.35), inset 0 0 25px rgba(255, 255, 255, 0.05);
+      padding: 34px 38px;
+      max-width: 600px;
+      width: 92%;
+    }
+
+    h1.mega {
+      font-size: clamp(2.6rem, 8.5vw, 4.6rem);
+      color: #ffd23f;
+      margin: 0 0 8px 0;
+    }
+
+    h2.sub {
+      font-family: 'Bangers', cursive;
+      color: #7ce0ff;
+      font-size: clamp(1.3rem, 3.4vw, 1.9rem);
+      margin: 0 0 20px 0;
+      text-shadow: 2px 2px 0 #000;
+    }
+
+    p.tag {
+      color: #dbe1ff;
+      font-size: clamp(1rem, 2.2vw, 1.15rem);
+      margin-bottom: 20px;
+      line-height: 1.6;
+      font-weight: 500;
+    }
+
+    .btn {
+      font-family: 'Bangers', cursive;
+      font-size: clamp(1.15rem, 2.6vw, 1.45rem);
+      letter-spacing: 1px;
+      color: #14101f;
+      background: linear-gradient(180deg, #ffe25c, #ff9d2f);
+      border: 3px solid #4a2c00;
+      border-radius: 14px;
+      padding: 14px 34px;
+      cursor: pointer;
+      box-shadow: 0 6px 0 #a15a00, 0 10px 18px rgba(0, 0, 0, 0.4);
+      transition: transform 0.08s ease;
+      margin: 6px;
+    }
+
+    .btn:hover {
+      filter: brightness(1.08);
+    }
+
+    .btn:active {
+      transform: translateY(4px);
+      box-shadow: 0 2px 0 #a15a00;
+    }
+
+    .btn.secondary {
+      background: linear-gradient(180deg, #6fe6ff, #2ba3d8);
+      box-shadow: 0 6px 0 #135072, 0 10px 18px rgba(0, 0, 0, 0.4);
+    }
+
+    form.hero-form {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      text-align: left;
+    }
+
+    form.hero-form .field {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    form.hero-form label {
+      font-size: 0.95rem;
+      color: #9be8c4;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    form.hero-form input {
+      font-family: 'Poppins', sans-serif;
+      background: #0e1330;
+      border: 2px solid #3a4780;
+      border-radius: 10px;
+      color: #fff;
+      padding: 13px 14px;
+      font-size: 1.1rem;
+      outline: none;
+    }
+
+    form.hero-form input:focus {
+      border-color: #ffd23f;
+      box-shadow: 0 0 0 3px rgba(255, 210, 63, 0.25);
+    }
+
+    #storyOverlay .storyLine {
+      font-size: clamp(1.1rem, 2.6vw, 1.35rem);
+      color: #fff8e0;
+      margin: 12px 0;
+      min-height: 1.4em;
+      opacity: 0;
+      transition: opacity 0.8s ease;
+      font-weight: 600;
+    }
+
+    #storyOverlay .storyLine.show {
+      opacity: 1;
+    }
+
+    /* ============================================================
+     HUD  -  improved "character ui"
+     ============================================================ */
+    #hud {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      padding: 14px 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      z-index: 20;
+      pointer-events: none;
+    }
+
+    .hud-card {
+      background: linear-gradient(160deg, rgba(20, 24, 50, 0.88), rgba(8, 10, 24, 0.88));
+      border: 2px solid rgba(255, 210, 63, 0.6);
+      border-radius: 14px;
+      padding: 10px 16px;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    #heroCard {}
+
+    #heroAvatar {
+      width: 46px;
+      height: 46px;
+      border-radius: 50%;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.5rem;
+      border: 3px solid #ffd23f;
+      box-shadow: 0 0 12px rgba(255, 210, 63, 0.6);
+    }
+
+    .hud-stats {
+      font-size: 1rem;
+      line-height: 1.45;
+      text-align: left;
+    }
+
+    .hud-stats b {
+      color: #ffd23f;
+      font-size: 1.05rem;
+    }
+
+    .hud-stats .lbl {
+      color: #9fb3ff;
+      font-size: 0.82rem;
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+      margin-right: 4px;
+    }
+
+    #hudRight {
+      text-align: right;
+    }
+
+    #livesRow {
+      font-size: 1.35rem;
+      letter-spacing: 2px;
+    }
+
+    #hudRight .hud-stats {
+      text-align: right;
+    }
+
+    #missionBanner {
+      position: absolute;
+      top: 16px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: linear-gradient(160deg, rgba(20, 10, 40, 0.85), rgba(10, 6, 24, 0.85));
+      border: 2px solid #7ce0ff;
+      border-radius: 34px;
+      padding: 10px 26px;
+      font-size: clamp(0.95rem, 1.8vw, 1.15rem);
+      color: #dff6ff;
+      z-index: 20;
+      text-align: center;
+      white-space: nowrap;
+      box-shadow: 0 0 18px rgba(124, 224, 255, 0.45);
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    #zoneDots {
+      position: absolute;
+      top: 74px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 20;
+      display: flex;
+      gap: 10px;
+    }
+
+    .zdot {
+      width: 13px;
+      height: 13px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.25);
+      border: 2px solid rgba(255, 255, 255, 0.5);
+      transition: all 0.3s;
+    }
+
+    .zdot.done {
+      background: #ffd23f;
+      border-color: #ffd23f;
+      box-shadow: 0 0 10px #ffd23f;
+    }
+
+    .zdot.current {
+      background: #7ce0ff;
+      border-color: #7ce0ff;
+      box-shadow: 0 0 10px #7ce0ff;
+      transform: scale(1.25);
+    }
+
+    #bossBarWrap {
+      position: absolute;
+      top: 100px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: min(460px, 74vw);
+      z-index: 20;
+      text-align: center;
+    }
+
+    #bossBarWrap .lbl {
+      font-family: 'Bangers', cursive;
+      color: #ff6b6b;
+      font-size: clamp(1rem, 2.4vw, 1.3rem);
+      text-shadow: 2px 2px 0 #000;
+    }
+
+    #bossBarOuter {
+      background: #2b0b12;
+      border: 2px solid #ff6b6b;
+      border-radius: 9px;
+      height: 16px;
+      overflow: hidden;
+    }
+
+    #bossBarInner {
+      background: linear-gradient(90deg, #ff5b5b, #ffb020);
+      height: 100%;
+      width: 100%;
+      transition: width 0.2s;
+    }
+
+    #soundBtn {
+      position: absolute;
+      top: 14px;
+      right: 14px;
+      z-index: 25;
+      pointer-events: auto;
+      background: rgba(6, 8, 20, 0.6);
+      border: 2px solid #ffd23f;
+      border-radius: 50%;
+      width: 44px;
+      height: 44px;
+      font-size: 1.25rem;
+      cursor: pointer;
+      color: #ffd23f;
+      display: none;
+    }
+
+    /* zone-clear toast (non-blocking) */
+    #zoneToast {
+      position: absolute;
+      top: 22%;
+      left: 50%;
+      transform: translate(-50%, -10px);
+      z-index: 26;
+      background: linear-gradient(160deg, rgba(255, 226, 92, 0.96), rgba(255, 157, 47, 0.96));
+      color: #2a1400;
+      border-radius: 16px;
+      padding: 16px 30px;
+      text-align: center;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+      opacity: 0;
+      transition: opacity 0.35s ease, transform 0.35s ease;
+      pointer-events: none;
+    }
+
+    #zoneToast.show {
+      opacity: 1;
+      transform: translate(-50%, 0);
+    }
+
+    #zoneToast .zt-title {
+      font-family: 'Bangers', cursive;
+      font-size: clamp(1.4rem, 3vw, 1.9rem);
+    }
+
+    #zoneToast .zt-sub {
+      font-size: clamp(0.9rem, 1.8vw, 1.05rem);
+      font-weight: 700;
+    }
+
+    #hintToast {
+      position: absolute;
+      bottom: 90px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(20, 10, 10, 0.85);
+      border: 2px solid #ff8f8f;
+      border-radius: 12px;
+      padding: 10px 20px;
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: #ffd7d7;
+      z-index: 24;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+      max-width: min(90vw, 520px);
+      text-align: center;
+      white-space: normal;
+    }
+
+    #hintToast.show {
+      opacity: 1;
+    }
+
+    /* mobile touch controls */
+    #touchControls {
+      position: absolute;
+      bottom: 16px;
+      left: 0;
+      width: 100%;
+      display: none;
+      justify-content: space-between;
+      padding: 0 16px;
+      z-index: 22;
+      pointer-events: none;
+    }
+
+    #touchControls .grp {
+      display: flex;
+      gap: 10px;
+      pointer-events: auto;
+    }
+
+    .tbtn {
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.14);
+      border: 2px solid rgba(255, 255, 255, 0.45);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.5rem;
+      color: #fff;
+      user-select: none;
+    }
+
+    @media (max-width: 900px),
+    (pointer: coarse) {
+      #touchControls {
+        display: flex;
+      }
+    }
+
+    #centerBanner {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 40;
+      background: rgba(4, 5, 14, 0.72);
+    }
+
+    #centerBanner .box {
+      text-align: center;
+    }
+
+    .fadeIn {
+      animation: fadeInAnim 0.6s ease both;
+    }
+
+    @keyframes fadeInAnim {
+      from {
+        opacity: 0;
+        transform: translateY(14px);
+      }
+
+      to {
+        opacity: 1;
+        transform: none;
+      }
+    }
+
+    #certCanvasWrap {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 14px;
+    }
+
+    #certCanvas {
+      width: min(560px, 90vw);
+      border-radius: 10px;
+      box-shadow: 0 0 30px rgba(255, 210, 63, 0.5);
+      border: 3px solid #ffd23f;
+    }
+
+    @media (max-width: 640px) {
+      .hud-card {
+        padding: 8px 12px;
+        gap: 8px;
+      }
+
+      #heroAvatar {
+        width: 38px;
+        height: 38px;
+        font-size: 1.2rem;
+      }
+
+      .hud-stats {
+        font-size: 0.85rem;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <div id="gameWrap">
+    <canvas id="game"></canvas>
+
+    <!-- ===================== HUD ===================== -->
+    <div id="hud" class="hidden">
+      <div class="hud-card" id="heroCard">
+        <div id="heroAvatar">🧑</div>
+        <div class="hud-stats">
+          <div><span class="lbl">Hero</span><b id="hudStageLabel">A Dreamer</b></div>
+          <div><span class="lbl">Distance</span><b id="hudDistance">0</b>m &nbsp; <span class="lbl">Power</span><b
+              id="hudPower">0</b></div>
+        </div>
+      </div>
+      <div class="hud-card" id="hudRight">
+        <div class="hud-stats">
+          <div id="livesRow">❤️❤️❤️</div>
+          <div><span class="lbl">Knowledge</span><b id="hudKnowledge">0</b> 📘</div>
+        </div>
+      </div>
+    </div>
+    <div id="missionBanner" class="hidden">🎯 <span id="missionText">Believe in yourself.</span></div>
+    <div id="zoneDots" class="hidden"></div>
+    <div id="bossBarWrap" class="hidden">
+      <div class="lbl" id="bossLabel">"I AM NOT GOOD ENOUGH"</div>
+      <div id="bossBarOuter">
+        <div id="bossBarInner"></div>
+      </div>
+    </div>
+    <div id="zoneToast">
+      <div class="zt-title" id="ztTitle">Zone Clear!</div>
+      <div class="zt-sub" id="ztSub">Your hero grows stronger</div>
+    </div>
+    <div id="hintToast">Defeat your inner struggles to move forward! ⚔️</div>
+    <button id="soundBtn" title="Toggle Sound">🔊</button>
+
+    <div id="touchControls">
+      <div class="grp">
+        <div class="tbtn" id="tLeft">⬅️</div>
+        <div class="tbtn" id="tRight">➡️</div>
+      </div>
+      <div class="grp">
+        <div class="tbtn" id="tShoot">✨</div>
+        <div class="tbtn" id="tJump">⬆️</div>
+      </div>
+    </div>
+
+    <!-- ===================== MAIN MENU ===================== -->
+    <div id="menuOverlay" class="overlay">
+      <div class="panel fadeIn">
+        <h1 class="mega comic-title">Join Hero Verse</h1>
+        <h2 class="sub">RISE OF A HERO</h2>
+        <p class="tag">Heroes aren't born.<br>Heroes are built by overcoming challenges.</p>
+        <button class="btn" id="startBtn">▶ Begin Your Journey</button>
+        <p class="tag" style="font-size:0.85rem;opacity:0.75;">⬅️➡️ or A/D move · ⬆️/W jump · SPACE shoot positive power
+        </p>
+      </div>
+    </div>
+
+    <!-- ===================== CREATE HERO FORM ===================== -->
+    <div id="createOverlay" class="overlay hidden">
+      <div class="panel fadeIn">
+        <h2 class="sub" style="color:#ffd23f;">JOIN HERO VERSE</h2>
+        <form class="hero-form" id="heroForm">
+          <div class="field"><label>🦸 Choose Your Hero Name</label><input type="text" id="inName" maxlength="26"
+              placeholder="e.g. Shikhar Stark" required></div>
+          <div class="field"><label>🎯 Choose Your Dream Career</label><input type="text" id="inCareer" maxlength="26"
+              placeholder="e.g. Scientist, Astronaut, Coder" required></div>
+          <div class="field"><label>⚡ Your Superpower</label><input type="text" id="inPower" maxlength="24"
+              placeholder="e.g. Creativity, Kindness" required></div>
+          <div class="field"><label>🌟 Your Mission</label><input type="text" id="inMission" maxlength="30"
+              placeholder="e.g. Help others learn" required></div>
+          <button type="submit" class="btn">Continue ➜</button>
+        </form>
+      </div>
+    </div>
+
+    <!-- ===================== STORY INTRO ===================== -->
+    <div id="storyOverlay" class="overlay hidden">
+      <div class="panel fadeIn" style="max-width:680px;">
+        <div id="storyLines"></div>
+        <button class="btn hidden" id="storyContinueBtn">Start Adventure ▶</button>
+      </div>
+    </div>
+
+    <!-- ===================== CENTER BANNER (game over only) ===================== -->
+    <div id="centerBanner" class="hidden">
+      <div class="box panel fadeIn" id="centerBannerBox">
+        <h2 class="sub" id="cbTitle">DON'T GIVE UP 💪</h2>
+        <p class="tag" id="cbText"></p>
+        <button class="btn" id="cbBtn">Try Again ➜</button>
+      </div>
+    </div>
+
+    <!-- ===================== ENDING ===================== -->
+    <div id="endingOverlay" class="overlay hidden"
+      style="background:radial-gradient(circle at 50% 30%, #2a1450, #05030d 75%);">
+      <div id="endingText" class="fadeIn">
+        <h1 class="mega comic-title" style="color:#ffe98a;">⭐ YOU BECAME A HERO ⭐</h1>
+      </div>
+    </div>
+
+    <!-- ===================== CERTIFICATE ===================== -->
+    <div id="certOverlay" class="overlay hidden">
+      <div id="certCanvasWrap">
+        <canvas id="certCanvas" width="900" height="760"></canvas>
+        <div>
+          <button class="btn" id="downloadCertBtn">⬇ Download Certificate</button>
+          <button class="btn secondary" id="playAgainBtn">🔁 Play Again</button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    /* ================================================================================================
+       HEROVERSE: RISE OF A HERO
+       -----------------------------------------------------------------------------------------------
+       This version is ONE continuous world (a single scrolling "frame") made of 5 short themed
+       zones: School -> College -> Skill and Personality Development -> Job/Business -> HeroVerse City. You never leave
+       the level or see a loading screen between them - the background gradually changes as you
+       walk further, just like walking through different neighborhoods in one long street.
+    
+       FILE MAP (read top-to-bottom, like chapters in a book):
+         1. SETUP         - canvas & constants
+         2. DATA           - hero growth stages, the 5 zones, enemy & power-up "recipes"
+         3. AUDIO          - tiny built-in sound effects (no files needed)
+         4. INPUT          - keyboard & touch
+         5. ENTITIES       - player, enemies, projectiles, particles, power-ups
+         6. WORLD          - building the single long world, invisible zone gates, camera
+         7. GAME STATES    - menu -> create hero -> story -> playing -> ending -> certificate
+         8. DRAWING        - all canvas rendering, including the themed zone scenery
+         9. MAIN LOOP
+       ================================================================================================ */
+
+    /* ------------------------------------------------------------------ 1. SETUP ------------------------------------------------------------------ */
+    const canvas = document.getElementById('game');
+    const ctx = canvas.getContext('2d');
+
+    function resizeCanvas() {
+      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+      canvas.width = window.innerWidth * dpr;
+      canvas.height = window.innerHeight * dpr;
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      canvas._cssW = window.innerWidth;
+      canvas._cssH = window.innerHeight;
+    }
+    window.addEventListener('resize', resizeCanvas);
+    resizeCanvas();
+
+    const GRAVITY = 0.62;
+    const GROUND_HEIGHT = 90;
+    const BLEND = 260; // how many world-pixels before/after a zone edge we smoothly cross-fade colors
+
+    const hero = { name: '', career: '', power: '', mission: '' };
+
+    /* ------------------------------------------------------------------ 2. DATA ------------------------------------------------------------------ */
+
+    // Hero visually grows through these stages - one per zone cleared, plus a final legendary stage.
+    const HERO_STAGES = [
+      { label: 'A Dreamer', scale: 1.0, body: '#5b8def', armor: '#3a63b0', cape: false, glow: 0, emoji: '💡', proj: '#8fd3ff' },
+      { label: 'A Learner', scale: 1.16, body: '#4f9bff', armor: '#2f6fd6', cape: false, glow: 5, emoji: '⚡', proj: '#ffe37a' },
+      { label: 'A Brave Heart', scale: 1.34, body: '#3d7ef2', armor: '#e63946', cape: true, glow: 11, emoji: '❤️', proj: '#ff8fa3' },
+      { label: 'A Rising Hero', scale: 1.54, body: '#e63946', armor: '#ffd23f', cape: true, glow: 18, emoji: '📚', proj: '#a3f7bf' },
+      { label: 'Iron Champion', scale: 1.76, body: '#c81d25', armor: '#ffd23f', cape: true, glow: 26, emoji: '🌟', proj: '#fff2a8' },
+      { label: 'LEGEND OF HEROVERSE', scale: 2.05, body: '#b3121a', armor: '#ffe25c', cape: true, glow: 38, emoji: '🌟', proj: '#fff6c9' },
+    ];
+    const STAGE_AVATARS = ['🧑', '🧑‍🎓', '🦸', '🦸‍♂️', '🤖🦸', '🌟🦸'];
+
+    // The single world is built from these 5 short zones, back to back.
+    // "length" is short on purpose (much shorter than before) so pacing stays snappy.
+    const ZONES = [
+      {
+        key: 'school', name: 'School', place: '🏫', sign: 'SCHOOL', sky: ['#8fd3ff', '#eaf7ff'], ground: '#6b4b2a', accent: '#ffb703',
+        length: 950, mission: 'Believe in yourself.',
+        enemies: [{ type: 'selfDoubt', off: 260 }, { type: 'negativeThinking', off: 520 }, { type: 'selfDoubt', off: 760 }],
+        powerupType: 'curiosity'
+      },
+      {
+        key: 'college', name: 'College', place: '🎓', sign: 'COLLEGE', sky: ['#ffd6a5', '#fff3c4'], ground: '#5a4632', accent: '#fb8500',
+        length: 1000, mission: 'Learn something new.',
+        enemies: [{ type: 'fear', off: 260 }, { type: 'fear', off: 560 }, { type: 'fear', off: 820 }],
+        powerupType: 'coding'
+      },
+      {
+        key: 'aiWorkshop', name: 'Skill and Personality Development', place: '🤖', sign: 'SKILL & PERSONALITY DEV.', sky: ['#b39ddb', '#e0c3fc'], ground: '#2f2a4a', accent: '#7ce0ff',
+        length: 1000, mission: 'Dream bigger.',
+        enemies: [{ type: 'givingUp', off: 280 }, { type: 'laziness', off: 560 }, { type: 'givingUp', off: 820 }],
+        powerupType: 'aiUse'
+      },
+      {
+        key: 'business', name: 'Job & Business', place: '🏙️', sign: 'OFFICE', sky: ['#5865a8', '#a1c4fd'], ground: '#333048', accent: '#ffd23f',
+        length: 1050, mission: 'Help others & keep moving forward.',
+        enemies: [{ type: 'comparison', off: 280 }, { type: 'comparison', off: 580 }, { type: 'comparison', off: 860 }],
+        powerupType: 'coding'
+      },
+      {
+        key: 'heroverse', name: 'HeroVerse City', place: '🌆', sign: 'HEROVERSE CITY', sky: ['#ff9a76', '#ffe29a'], ground: '#40203c', accent: '#ffe25c',
+        length: 900, mission: 'Never give up. You are enough.',
+        enemies: [{ type: 'finalBoss', off: 580, boss: true }],
+        powerupType: 'curiosity'
+      },
+    ];
+
+    // Pre-compute where each zone starts/ends in the single continuous world.
+    let ZONE_START = [], WORLD_LENGTH = 0;
+    (function computeZoneStarts() {
+      let acc = 0;
+      ZONES.forEach(z => { ZONE_START.push(acc); acc += z.length; });
+      WORLD_LENGTH = acc;
+    })();
+
+    const ENEMY_TYPES = {
+      selfDoubt: { label: 'Self Doubt', color: '#9aa0b4', dark: '#6b7189', hp: 2, w: 46, h: 46, icon: '❓' },
+      negativeThinking: { label: 'Negative Thinking', color: '#7a7a9d', dark: '#54547a', hp: 2, w: 46, h: 46, icon: '☁️' },
+      fear: { label: 'Fear', color: '#9b7fd4', dark: '#6d54a8', hp: 3, w: 48, h: 52, icon: '😨' },
+      givingUp: { label: 'Giving Up', color: '#b08968', dark: '#7c5c40', hp: 3, w: 52, h: 44, icon: '😩' },
+      laziness: { label: 'Laziness', color: '#c9b37c', dark: '#93804f', hp: 2, w: 52, h: 42, icon: '💤' },
+      comparison: { label: 'Comparison', color: '#6fb1d6', dark: '#4a80a3', hp: 4, w: 48, h: 48, icon: '⚖️' },
+      finalBoss: { label: '"I Am Not Good Enough"', color: '#3d3350', dark: '#221c30', hp: 22, w: 120, h: 120, icon: '✖️' },
+    };
+    const DEFEAT_MESSAGES = ['Confidence Wins!', 'Keep Going!', 'Believe in Yourself!', 'You Can Do It!', 'You Are Enough!', 'One Step Closer!'];
+    const POWERUP_TYPES = {
+      aiUse: { icon: '📚', label: 'AI Use', effect: 'rapid', duration: 8000, desc: 'Rapid Fire!' },
+      coding: { icon: '💻', label: 'Coding Skills', effect: 'speed', duration: 8000, desc: 'Speed Boost!' },
+      curiosity: { icon: '⭐', label: 'Curiosity', effect: 'shield', duration: 8000, desc: 'Shield Up!' },
+    };
+    const STORY_LINES = [
+      'Every hero starts with a dream.',
+      'In a small quiet village, a child looks up at the sky...',
+      '"One day, I will change the world."',
+      'The road ahead is short in steps, but big in heart.',
+      'Every challenge overcome makes the dream a little more real.',
+      "Let's begin.",
+    ];
+
+    /* ------------------------------------------------------------------ 3. AUDIO ------------------------------------------------------------------ */
+    let audioCtx = null, soundOn = true;
+    function ensureAudio() { if (!audioCtx) { try { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) { audioCtx = null; } } }
+    function beep(freq, dur, type = 'sine', vol = 0.18, delay = 0) {
+      if (!soundOn || !audioCtx) return;
+      const t0 = audioCtx.currentTime + delay;
+      const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain();
+      osc.type = type; osc.frequency.value = freq;
+      gain.gain.setValueAtTime(vol, t0); gain.gain.exponentialRampToValueAtTime(0.001, t0 + dur);
+      osc.connect(gain); gain.connect(audioCtx.destination); osc.start(t0); osc.stop(t0 + dur + 0.02);
+    }
+    const SFX = {
+      shoot: () => beep(720, 0.09, 'triangle', 0.12),
+      hit: () => beep(300, 0.12, 'square', 0.10),
+      defeat: () => { beep(520, 0.12, 'sine', 0.15); beep(780, 0.15, 'sine', 0.15, 0.08); },
+      power: () => { beep(500, 0.1, 'sine', 0.15); beep(700, 0.1, 'sine', 0.15, 0.07); beep(900, 0.15, 'sine', 0.15, 0.14); },
+      upgrade: () => { [440, 554, 659, 880].forEach((f, i) => beep(f, 0.18, 'triangle', 0.16, i * 0.09)); },
+      hurt: () => beep(160, 0.2, 'sawtooth', 0.16),
+      victory: () => { [523, 659, 784, 1046, 1318].forEach((f, i) => beep(f, 0.3, 'triangle', 0.18, i * 0.14)); },
+    };
+    let musicTimer = null, musicZone = -1;
+    function updateMusicForZone(zoneIdx) {
+      if (zoneIdx === musicZone) return;
+      musicZone = zoneIdx;
+      stopMusic();
+      const scales = [[392, 440, 494, 587], [349, 415, 466, 554], [466, 523, 622, 698], [415, 494, 554, 659], [523, 587, 659, 784]];
+      const notes = scales[zoneIdx % scales.length];
+      let i = 0;
+      musicTimer = setInterval(() => { if (soundOn) beep(notes[i % notes.length], 0.5, 'sine', 0.045); i++; }, 650);
+    }
+    function stopMusic() { if (musicTimer) { clearInterval(musicTimer); musicTimer = null; } }
+    document.getElementById('soundBtn').addEventListener('click', () => {
+      soundOn = !soundOn;
+      document.getElementById('soundBtn').textContent = soundOn ? '🔊' : '🔇';
+    });
+
+    /* ------------------------------------------------------------------ 4. INPUT ------------------------------------------------------------------ */
+    const keys = {};
+    window.addEventListener('keydown', (e) => { keys[e.code] = true; if (e.code === 'Space') e.preventDefault(); });
+    window.addEventListener('keyup', (e) => { keys[e.code] = false; });
+    function bindTouch(id, code) {
+      const el = document.getElementById(id);
+      el.addEventListener('touchstart', (e) => { keys[code] = true; e.preventDefault(); }, { passive: false });
+      el.addEventListener('touchend', (e) => { keys[code] = false; e.preventDefault(); }, { passive: false });
+      el.addEventListener('mousedown', () => { keys[code] = true; });
+      el.addEventListener('mouseup', () => { keys[code] = false; });
+    }
+    bindTouch('tLeft', 'ArrowLeft'); bindTouch('tRight', 'ArrowRight'); bindTouch('tJump', 'ArrowUp'); bindTouch('tShoot', 'Space');
+    function isLeft() { return keys['ArrowLeft'] || keys['KeyA']; }
+    function isRight() { return keys['ArrowRight'] || keys['KeyD']; }
+    function isJump() { return keys['ArrowUp'] || keys['KeyW']; }
+    function isShoot() { return keys['Space']; }
+
+    /* ------------------------------------------------------------------ 5. ENTITIES ------------------------------------------------------------------ */
+    const player = {
+      x: 100, y: 0, vx: 0, vy: 0, w: 34, h: 52, onGround: false, facing: 1,
+      stage: 0, lives: 3, dreamPower: 0, knowledge: 0, invulnTimer: 0, shootCooldown: 0, runPhase: 0,
+      buffs: {},
+      reset(x, y) { this.x = x; this.y = y; this.vx = 0; this.vy = 0; this.invulnTimer = 60; },
+    };
+    function currentStage() { return HERO_STAGES[player.stage]; }
+
+    let enemies = [], projectiles = [], powerups = [], particles = [], floatingTexts = [], platforms = [];
+    let gates = []; // invisible glowing barriers between zones
+
+    function spawnEnemy(type, x, zoneIdx, boss) {
+      const t = ENEMY_TYPES[type];
+      enemies.push({ type, def: t, x, w: t.w, h: t.h, hp: t.hp, maxHp: t.hp, baseX: x, wobble: Math.random() * Math.PI * 2, boss: !!boss, zoneIdx, alive: true });
+    }
+    function spawnPowerup(x, type) { powerups.push({ x, type, bob: Math.random() * Math.PI * 2, taken: false }); }
+    function spawnParticlesLight(x, y, color, count = 18) {
+      for (let i = 0; i < count; i++) {
+        const a = Math.random() * Math.PI * 2, spd = 1 + Math.random() * 3;
+        particles.push({ x, y, vx: Math.cos(a) * spd, vy: Math.sin(a) * spd - 1, life: 40 + Math.random() * 20, maxLife: 60, color, size: 2 + Math.random() * 3 });
+      }
+    }
+    function spawnFloatingText(x, y, text, color = '#fff8d6') { floatingTexts.push({ x, y, text, life: 90, color }); }
+
+    /* ------------------------------------------------------------------ 6. WORLD ------------------------------------------------------------------ */
+    let camX = 0, shakeTime = 0, shakeMag = 0;
+    let worldBuilt = false;
+    let zoneCleared = [];
+
+    function groundLevelY() { return (canvas._cssH || window.innerHeight) - GROUND_HEIGHT; }
+
+    function zoneIndexAt(x) {
+      for (let i = ZONES.length - 1; i >= 0; i--) if (x >= ZONE_START[i]) return i;
+      return 0;
+    }
+
+    function buildWorld() {
+      enemies = []; projectiles = []; powerups = []; particles = []; floatingTexts = []; platforms = []; gates = [];
+      zoneCleared = ZONES.map(() => false);
+
+      ZONES.forEach((z, zi) => {
+        z.enemies.forEach(e => spawnEnemy(e.type, ZONE_START[zi] + e.off, zi, e.boss));
+        // a few power-ups scattered through the zone
+        for (let i = 1; i <= 3; i++) spawnPowerup(ZONE_START[zi] + z.length * (i / 4), z.powerupType);
+        // a couple of jump platforms per zone
+        for (let i = 0; i < 2; i++) {
+          platforms.push({ x: ZONE_START[zi] + 220 + i * 380, y: groundLevelY() - 120 - (i % 2) * 50, w: 130, h: 20 });
+        }
+        // a glowing gate at the END of every zone except the very last one
+        if (zi < ZONES.length - 1) {
+          gates.push({ x: ZONE_START[zi] + z.length - 10, zoneIdx: zi, active: true, pulse: 0 });
+        }
+      });
+
+      document.getElementById('bossBarWrap').classList.add('hidden');
+      buildZoneDots();
+      worldBuilt = true;
+    }
+
+    function buildZoneDots() {
+      const wrap = document.getElementById('zoneDots');
+      wrap.innerHTML = '';
+      ZONES.forEach((z, i) => {
+        const d = document.createElement('div');
+        d.className = 'zdot';
+        d.title = z.name;
+        wrap.appendChild(d);
+      });
+    }
+    function updateZoneDots(curZone) {
+      const dots = document.querySelectorAll('#zoneDots .zdot');
+      dots.forEach((d, i) => {
+        d.classList.toggle('done', !!zoneCleared[i]);
+        d.classList.toggle('current', i === curZone && !zoneCleared[i]);
+      });
+    }
+
+    function respawnAtZone(idx) {
+      const gy = groundLevelY();
+      player.reset(ZONE_START[idx] + 40, gy - player.h - 200);
+    }
+
+    /* ------------------------------------------------------------------ 7. GAME STATES ------------------------------------------------------------------ */
+    let state = 'menu'; // menu -> create -> story -> playing -> gameover -> ending -> certificate
+
+    const els = {
+      menu: document.getElementById('menuOverlay'), create: document.getElementById('createOverlay'),
+      story: document.getElementById('storyOverlay'), hud: document.getElementById('hud'),
+      mission: document.getElementById('missionBanner'), zoneDots: document.getElementById('zoneDots'),
+      center: document.getElementById('centerBanner'), ending: document.getElementById('endingOverlay'),
+      cert: document.getElementById('certOverlay'), soundBtn: document.getElementById('soundBtn'),
+    };
+    function showOnly(...names) {
+      ['menu', 'create', 'story', 'center', 'ending', 'cert'].forEach(n => els[n].classList.toggle('hidden', !names.includes(n)));
+    }
+
+    document.getElementById('startBtn').addEventListener('click', () => { ensureAudio(); state = 'create'; showOnly('create'); });
+
+    document.getElementById('heroForm').addEventListener('submit', (e) => {
+      e.preventDefault();
+      hero.name = document.getElementById('inName').value.trim() || 'Hero';
+      hero.career = document.getElementById('inCareer').value.trim() || 'Dreamer';
+      hero.power = document.getElementById('inPower').value.trim() || 'Courage';
+      hero.mission = document.getElementById('inMission').value.trim() || 'Make the world better';
+      beginStory();
+    });
+
+    function beginStory() {
+      state = 'story'; showOnly('story');
+      const wrap = document.getElementById('storyLines'); wrap.innerHTML = '';
+      document.getElementById('storyContinueBtn').classList.add('hidden');
+      let i = 0;
+      function nextLine() {
+        if (i >= STORY_LINES.length) { document.getElementById('storyContinueBtn').classList.remove('hidden'); return; }
+        const p = document.createElement('p'); p.className = 'storyLine'; p.textContent = STORY_LINES[i];
+        wrap.appendChild(p);
+        requestAnimationFrame(() => p.classList.add('show'));
+        i++; setTimeout(nextLine, 1400);
+      }
+      nextLine();
+    }
+
+    document.getElementById('storyContinueBtn').addEventListener('click', () => {
+      player.stage = 0; player.lives = 3; player.dreamPower = 0; player.knowledge = 0;
+      buildWorld();
+      respawnAtZone(0);
+      camX = 0;
+      state = 'playing';
+      showOnly();
+      els.hud.classList.remove('hidden'); els.mission.classList.remove('hidden'); els.zoneDots.classList.remove('hidden');
+      els.soundBtn.style.display = 'block';
+      updateMusicForZone(0);
+      startReminderCycle();
+    });
+
+    document.getElementById('cbBtn').addEventListener('click', () => {
+      els.center.classList.add('hidden');
+      player.lives = 3;
+      respawnAtZone(zoneIndexAt(player.x));
+      state = 'playing';
+    });
+
+    function showCenterBanner(title, text, btnLabel) {
+      document.getElementById('cbTitle').textContent = title;
+      document.getElementById('cbText').textContent = text;
+      document.getElementById('cbBtn').textContent = btnLabel;
+      els.center.classList.remove('hidden');
+    }
+    function onGameOver() {
+      state = 'gameover'; stopMusic();
+      showCenterBanner('DON\'T GIVE UP 💪', 'Every hero stumbles. Take a breath, and try again!', 'Try Again ➜');
+    }
+
+    // non-blocking toast shown when a zone is cleared and the hero upgrades
+    let toastTimer = null;
+    function showZoneToast(title, sub) {
+      const t = document.getElementById('zoneToast');
+      document.getElementById('ztTitle').textContent = title;
+      document.getElementById('ztSub').textContent = sub;
+      t.classList.add('show');
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => t.classList.remove('show'), 2400);
+    }
+    let hintTimer = null;
+    function showHint(text) {
+      const h = document.getElementById('hintToast');
+      if (text) h.textContent = text;
+      h.classList.add('show');
+      clearTimeout(hintTimer);
+      hintTimer = setTimeout(() => h.classList.remove('show'), text ? 3400 : 1600);
+    }
+
+    // personalised reminders that surface periodically during play - keeps the hero's own
+    // superpower, dream career and mission front-of-mind, and nudges against giving up.
+    let reminderTimer = null, reminderIdx = 0;
+    function buildReminderMessages() {
+      const name = hero.name || 'Hero';
+      const power = hero.power || 'your unique power';
+      const career = hero.career || 'your dream career';
+      const mission = hero.mission || 'your mission';
+      return [
+        `⚡ Remember, ${name}: your superpower is ${power}!`,
+        `🎯 Don't give up, you're getting closer to becoming a ${career}!`,
+        `💪 Every struggle you overcome brings ${name} nearer to ${career}.`,
+        `🌟 Your mission: ${mission}. Keep going!`,
+        `🔥 Use ${power} it's what makes you unstoppable.`,
+        `✨ So close now. Giving up would mean walking away from ${career}.`,
+      ];
+    }
+    function startReminderCycle() {
+      clearInterval(reminderTimer);
+      reminderIdx = 0;
+      reminderTimer = setInterval(() => {
+        if (state !== 'playing') return;
+        const msgs = buildReminderMessages();
+        showHint(msgs[reminderIdx % msgs.length]);
+        reminderIdx++;
+      }, 14000);
+    }
+
+    function startEnding() {
+      state = 'ending'; stopMusic(); SFX.victory();
+      player.stage = HERO_STAGES.length - 1;
+      showOnly('ending');
+      els.hud.classList.add('hidden'); els.mission.classList.add('hidden'); els.zoneDots.classList.add('hidden');
+      document.getElementById('bossBarWrap').classList.add('hidden');
+      const textEl = document.getElementById('endingText');
+      const seq = [
+        { html: `<h1 class="mega comic-title" style="color:#ffe98a;">⭐ YOU BECAME A HERO ⭐</h1>` },
+        { html: `<p class="tag" style="font-size:1.2rem;max-width:560px;">The greatest battle is not against villains.<br>It is against the voice that says you can't.</p>` },
+        { html: `<h1 class="mega comic-title" style="color:#7ce0ff;">WELCOME TO HEROVERSE</h1><p class="tag">${hero.name}, the ${hero.career} with the power of ${hero.power}.</p>` },
+      ];
+      let i = 0;
+      function step() {
+        textEl.classList.remove('fadeIn'); void textEl.offsetWidth; textEl.classList.add('fadeIn');
+        textEl.innerHTML = seq[i].html; i++;
+        if (i < seq.length) setTimeout(step, 3000); else setTimeout(showCertificate, 3000);
+      }
+      step();
+    }
+
+    function showCertificate() {
+      state = 'certificate'; showOnly('cert');
+      const c = document.getElementById('certCanvas'); const cx = c.getContext('2d');
+      const W = c.width, H = c.height;
+      const grad = cx.createLinearGradient(0, 0, W, H); grad.addColorStop(0, '#141a33'); grad.addColorStop(1, '#0a0e1e');
+      cx.fillStyle = grad; cx.fillRect(0, 0, W, H);
+      cx.strokeStyle = '#ffd23f'; cx.lineWidth = 10; cx.strokeRect(20, 20, W - 40, H - 40);
+      cx.strokeStyle = '#7ce0ff'; cx.lineWidth = 3; cx.strokeRect(38, 38, W - 76, H - 76);
+      cx.font = '22px sans-serif';
+      for (let i = 0; i < 14; i++) { cx.globalAlpha = 0.5; cx.fillText('⭐', 60 + (i * 63) % (W - 120), 60 + ((i * 97) % (H - 560)) + 610); }
+      cx.globalAlpha = 1;
+      cx.textAlign = 'center';
+      cx.fillStyle = '#ffd23f'; cx.font = "54px 'Bangers', cursive"; cx.fillText('HERO CERTIFICATE', W / 2, 100);
+      cx.fillStyle = '#cfd6ff'; cx.font = "20px 'Poppins', sans-serif"; cx.fillText('This certifies that', W / 2, 140);
+
+      cx.fillStyle = '#9be8c4'; cx.font = "bold 14px 'Poppins', sans-serif"; cx.fillText('HERO NAME', W / 2, 172);
+      cx.fillStyle = '#fff'; cx.font = "46px 'Bangers', cursive"; cx.fillText(hero.name || 'A Hero', W / 2, 222);
+
+      cx.fillStyle = '#7ce0ff'; cx.font = "18px 'Poppins', sans-serif";
+      cx.fillText('has proven the strength to overcome inner challenges and is rising to become', W / 2, 254);
+
+      // labeled attribute cards: Dream Career, Superpower, Mission
+      function roundRectCx(x, y, w, h, r) {
+        cx.beginPath(); cx.moveTo(x + r, y);
+        cx.arcTo(x + w, y, x + w, y + h, r); cx.arcTo(x + w, y + h, x, y + h, r);
+        cx.arcTo(x, y + h, x, y, r); cx.arcTo(x, y, x + w, y, r); cx.closePath();
+      }
+      const rows = [
+        { icon: '🎯', label: 'HERO\u2019S DREAM CAREER', value: hero.career || 'Dreamer', color: '#ffe25c' },
+        { icon: '⚡', label: 'HERO\u2019S SUPERPOWER', value: hero.power || 'Courage', color: '#a3f7bf' },
+        { icon: '🌟', label: 'HERO\u2019S MISSION', value: hero.mission || 'Never give up', color: '#7ce0ff' },
+      ];
+      let ry = 300;
+      const cardW = 720, cardH = 78;
+      rows.forEach(r => {
+        cx.fillStyle = 'rgba(255,255,255,0.06)';
+        roundRectCx(W / 2 - cardW / 2, ry, cardW, cardH, 14); cx.fill();
+        cx.strokeStyle = 'rgba(255,255,255,0.18)'; cx.lineWidth = 1.5; cx.stroke();
+
+        cx.textAlign = 'left';
+        cx.font = '30px sans-serif'; cx.fillStyle = '#fff';
+        cx.fillText(r.icon, W / 2 - cardW / 2 + 22, ry + cardH / 2 + 11);
+
+        cx.fillStyle = r.color; cx.font = "bold 14px 'Poppins', sans-serif";
+        cx.fillText(r.label, W / 2 - cardW / 2 + 68, ry + 28);
+        cx.fillStyle = '#fff'; cx.font = "27px 'Bangers', cursive";
+        cx.fillText(r.value, W / 2 - cardW / 2 + 68, ry + 60);
+
+        ry += cardH + 16;
+      });
+
+      cx.textAlign = 'center';
+      cx.font = '64px sans-serif'; cx.fillText('🦸', W / 2, ry + 42);
+      cx.fillStyle = '#cfd6ff'; cx.font = "16px 'Poppins', sans-serif";
+      cx.fillText('"The greatest battle is against the voice that says you can\'t."', W / 2, ry + 88);
+      const d = new Date();
+      cx.font = "14px 'Poppins', sans-serif"; cx.fillStyle = '#8892c0';
+      cx.fillText('HeroVerse: Rise of a Hero  •  ' + d.toLocaleDateString(), W / 2, ry + 124);
+    }
+    document.getElementById('downloadCertBtn').addEventListener('click', () => {
+      const c = document.getElementById('certCanvas'); const link = document.createElement('a');
+      link.download = (hero.name || 'hero') + '-certificate.png'; link.href = c.toDataURL('image/png'); link.click();
+    });
+    document.getElementById('playAgainBtn').addEventListener('click', () => location.reload());
+
+    /* ------------------------------------------------------------------ MAIN UPDATE ------------------------------------------------------------------ */
+    let lastTime = performance.now();
+    let lastHintTime = 0;
+
+    function update() {
+      if (state !== 'playing') return;
+      const gy = groundLevelY();
+      const stage = currentStage();
+      const speedMul = (player.buffs.speed && player.buffs.speed > Date.now()) ? 1.5 : 1;
+
+      const moveSpeed = 3.2 * speedMul;
+      if (isLeft()) { player.vx = -moveSpeed; player.facing = -1; }
+      else if (isRight()) { player.vx = moveSpeed; player.facing = 1; }
+      else { player.vx *= 0.8; }
+
+      if (isJump() && player.onGround) { player.vy = -12.4; player.onGround = false; beep(500, 0.12, 'triangle', 0.1); }
+
+      player.vy += GRAVITY;
+      let nextX = player.x + player.vx;
+
+      // --- zone gates: invisible glowing walls that block progress until enemies are cleared ---
+      gates.forEach(g => {
+        if (g.active && nextX + player.w > g.x && player.x <= g.x) {
+          nextX = g.x - player.w;
+          if (performance.now() - lastHintTime > 1800) { showHint('Defeat your inner struggles to move forward! ⚔️'); lastHintTime = performance.now(); }
+        }
+      });
+      player.x = Math.max(0, Math.min(nextX, WORLD_LENGTH - player.w));
+      player.y += player.vy;
+
+      player.onGround = false;
+      if (player.y + player.h >= gy) { player.y = gy - player.h; player.vy = 0; player.onGround = true; }
+      platforms.forEach(p => {
+        if (player.vy >= 0 && player.x + player.w > p.x && player.x < p.x + p.w &&
+          player.y + player.h >= p.y && player.y + player.h <= p.y + 22 + player.vy + 2) {
+          player.y = p.y - player.h; player.vy = 0; player.onGround = true;
+        }
+      });
+
+      player.runPhase += Math.abs(player.vx) * 0.25;
+      if (player.invulnTimer > 0) player.invulnTimer--;
+
+      if (player.shootCooldown > 0) player.shootCooldown--;
+      const rapid = player.buffs.rapid && player.buffs.rapid > Date.now();
+      if (isShoot() && player.shootCooldown <= 0) {
+        projectiles.push({ x: player.x + player.w / 2, y: player.y + player.h * 0.4, vx: 7.5 * player.facing, emoji: stage.emoji, color: stage.proj });
+        player.shootCooldown = rapid ? 8 : 20;
+        SFX.shoot();
+      }
+
+      // --- enemies ---
+      enemies.forEach(e => {
+        if (!e.alive) return;
+        e.wobble += 0.06;
+        const range = e.boss ? 90 : 60;
+        e.x = e.baseX + Math.sin(e.wobble) * range;
+        const dx = e.x - (player.x + player.w / 2);
+        const closeX = Math.abs(dx) < (e.w / 2 + player.w / 2 - 6);
+        const closeY = Math.abs((gy - e.h / 2) - (player.y + player.h / 2)) < (e.h / 2 + player.h / 2 - 4);
+        if (closeX && closeY && player.invulnTimer <= 0) hurtPlayer();
+      });
+
+      projectiles.forEach(p => { p.x += p.vx; });
+      projectiles = projectiles.filter(p => p.x > camX - 50 && p.x < camX + (canvas._cssW || 800) + 50);
+
+      projectiles.forEach(p => {
+        enemies.forEach(e => {
+          if (!e.alive || p.hit) return;
+          const ex = e.x, ey = gy - e.h / 2;
+          if (Math.abs(p.x - ex) < e.w / 2 + 8 && Math.abs(p.y - ey) < e.h / 2 + 8) {
+            p.hit = true; e.hp--; SFX.hit();
+            spawnParticlesLight(ex, ey, e.def.color, 6);
+            if (e.hp <= 0) {
+              e.alive = false; SFX.defeat();
+              spawnParticlesLight(ex, ey, '#fff6c9', e.boss ? 60 : 26);
+              spawnFloatingText(ex, ey - 20, DEFEAT_MESSAGES[Math.floor(Math.random() * DEFEAT_MESSAGES.length)]);
+              player.dreamPower += e.boss ? 100 : 15;
+            }
+          }
+        });
+      });
+      projectiles = projectiles.filter(p => !p.hit);
+
+      // --- open gates once a zone's enemies are cleared ---
+      gates.forEach(g => {
+        if (!g.active) return;
+        const zoneEnemies = enemies.filter(e => e.zoneIdx === g.zoneIdx);
+        if (zoneEnemies.every(e => !e.alive)) {
+          g.active = false;
+          zoneCleared[g.zoneIdx] = true;
+          spawnParticlesLight(g.x, gy - 90, '#7ce0ff', 40);
+          player.stage = Math.min(player.stage + 1, HERO_STAGES.length - 1);
+          SFX.upgrade();
+          showZoneToast('ZONE CLEAR! 🎉', `Hero grows stronger: "${HERO_STAGES[player.stage].label}"`);
+        }
+      });
+
+      // --- boss ---
+      const curZone = zoneIndexAt(player.x);
+      const boss = enemies.find(e => e.boss);
+      document.getElementById('bossBarWrap').classList.toggle('hidden', !(boss && curZone === boss.zoneIdx));
+      if (boss && curZone === boss.zoneIdx) {
+        const pct = Math.max(0, boss.hp / boss.maxHp) * 100;
+        document.getElementById('bossBarInner').style.width = pct + '%';
+        if (boss.hp < boss.maxHp && boss.alive) { shakeTime = Math.max(shakeTime, 6); shakeMag = 4; }
+        if (!boss.alive && !boss.endTriggered) { boss.endTriggered = true; setTimeout(startEnding, 700); }
+      }
+
+      // --- power-ups ---
+      powerups.forEach(pu => {
+        if (pu.taken) return;
+        pu.bob += 0.08;
+        const dx = pu.x - (player.x + player.w / 2);
+        const dy = (gy - 60) - (player.y + player.h / 2);
+        if (Math.abs(dx) < 34 && Math.abs(dy) < 60) {
+          pu.taken = true; player.knowledge++;
+          const info = POWERUP_TYPES[pu.type];
+          player.buffs[info.effect] = Date.now() + info.duration;
+          SFX.power();
+          spawnFloatingText(pu.x, gy - 90, info.desc, '#a3f7bf');
+        }
+      });
+
+      particles.forEach(pt => { pt.x += pt.vx; pt.y += pt.vy; pt.vy += 0.03; pt.life--; });
+      particles = particles.filter(pt => pt.life > 0);
+      floatingTexts.forEach(t => { t.y -= 0.6; t.life--; });
+      floatingTexts = floatingTexts.filter(t => t.life > 0);
+      if (shakeTime > 0) shakeTime--;
+
+      const viewW = canvas._cssW || 800;
+      const targetCamX = Math.max(0, Math.min(player.x - viewW / 3, WORLD_LENGTH - viewW));
+      camX += (targetCamX - camX) * 0.12;
+
+      updateMusicForZone(curZone);
+      updateZoneDots(curZone);
+      document.getElementById('missionText').textContent = ZONES[curZone].mission;
+      document.getElementById('hudStageLabel').textContent = currentStage().label;
+      document.getElementById('heroAvatar').textContent = STAGE_AVATARS[player.stage];
+      document.getElementById('heroAvatar').style.background = currentStage().armor;
+      document.getElementById('hudDistance').textContent = Math.floor(player.x);
+      document.getElementById('hudPower').textContent = player.dreamPower;
+      document.getElementById('hudKnowledge').textContent = player.knowledge;
+      document.getElementById('livesRow').textContent = '❤️'.repeat(Math.max(0, player.lives));
+    }
+
+    function hurtPlayer() {
+      if (player.buffs.shield && player.buffs.shield > Date.now()) {
+        player.invulnTimer = 40;
+        spawnParticlesLight(player.x + player.w / 2, player.y + player.h / 2, '#7ce0ff', 14);
+        return;
+      }
+      player.lives--; player.invulnTimer = 90;
+      player.vx = -player.facing * 4; player.vy = -6;
+      SFX.hurt(); shakeTime = 12; shakeMag = 6;
+      if (player.lives <= 0) onGameOver();
+    }
+
+    /* ------------------------------------------------------------------ 8. DRAWING ------------------------------------------------------------------ */
+    function shadeColor(hex, amt) {
+      let c = hex.replace('#', '');
+      if (c.length === 3) c = c.split('').map(ch => ch + ch).join('');
+      const num = parseInt(c, 16);
+      let r = (num >> 16) + amt, g = ((num >> 8) & 0xff) + amt, b = (num & 0xff) + amt;
+      r = Math.max(0, Math.min(255, r)); g = Math.max(0, Math.min(255, g)); b = Math.max(0, Math.min(255, b));
+      return `rgb(${r},${g},${b})`;
+    }
+    function lerpColor(a, b, t) {
+      const pa = a.match(/\w\w/g).map(x => parseInt(x, 16));
+      const pb = b.match(/\w\w/g).map(x => parseInt(x, 16));
+      const r = Math.round(pa[0] + (pb[0] - pa[0]) * t), g = Math.round(pa[1] + (pb[1] - pa[1]) * t), bl = Math.round(pa[2] + (pb[2] - pa[2]) * t);
+      return `rgb(${r},${g},${bl})`;
+    }
+
+    // figure out which zone we're crossfading between, based on world x at the center of the screen
+    function zoneBlendAt(worldX) {
+      const zi = zoneIndexAt(worldX);
+      const nextZi = Math.min(zi + 1, ZONES.length - 1);
+      const zoneEnd = ZONE_START[zi] + ZONES[zi].length;
+      let t = 0;
+      if (nextZi !== zi) t = Math.max(0, Math.min(1, (worldX - (zoneEnd - BLEND)) / BLEND));
+      return { zi, nextZi, t };
+    }
+
+    function drawBackground() {
+      const w = canvas._cssW || window.innerWidth, h = canvas._cssH || window.innerHeight;
+      const gy = groundLevelY();
+      const centerWorldX = camX + w / 2;
+      const { zi, nextZi, t } = zoneBlendAt(centerWorldX);
+      const zoneA = ZONES[zi], zoneB = ZONES[nextZi];
+
+      const skyTop = lerpColor(zoneA.sky[0], zoneB.sky[0], t);
+      const skyBot = lerpColor(zoneA.sky[1], zoneB.sky[1], t);
+      const grad = ctx.createLinearGradient(0, 0, 0, h);
+      grad.addColorStop(0, skyTop); grad.addColorStop(1, skyBot);
+      ctx.fillStyle = grad; ctx.fillRect(0, 0, w, h);
+
+      const accent = lerpColor(zoneA.accent, zoneB.accent, t);
+      ctx.save(); ctx.globalAlpha = 0.45;
+      ctx.fillStyle = accent;
+      ctx.beginPath(); ctx.arc(w * 0.82 - camX * 0.03, h * 0.2, 66, 0, Math.PI * 2); ctx.fill();
+      ctx.restore();
+
+      // twinkling stars for the more magical later zones
+      if (zi >= 2) {
+        ctx.save(); ctx.fillStyle = '#fff';
+        for (let i = 0; i < 26; i++) {
+          const sx = (i * 97 - camX * 0.2) % (w + 200);
+          const sy = (i * 53) % (h * 0.45);
+          ctx.globalAlpha = (0.25 + 0.3 * Math.sin(i + performance.now() * 0.001)) * Math.min(1, (zi - 1));
+          ctx.beginPath(); ctx.arc(sx, sy, 1.6, 0, Math.PI * 2); ctx.fill();
+        }
+        ctx.restore();
+      }
+
+      drawZoneLandmarks(centerWorldX);
+    }
+
+    // distinctive silhouette "landmarks" for each themed zone, placed in world-space so they
+    // naturally scroll in and out of view as the camera moves through the single long world.
+    function drawZoneLandmarks(centerWorldX) {
+      const w = canvas._cssW || window.innerWidth;
+      const gy = groundLevelY();
+      const viewStart = camX - 300, viewEnd = camX + w + 300;
+
+      ZONES.forEach((z, zi) => {
+        const zStart = ZONE_START[zi], zEnd = zStart + z.length;
+        if (zEnd < viewStart || zStart > viewEnd) return; // zone not visible right now, skip
+
+        const far = 0.35, near = 0.6; // parallax factors (far layer moves slower than near layer)
+        const farColor = shadeColor(z.ground, 26), nearColor = shadeColor(z.ground, 6);
+
+        if (z.key === 'school') {
+          drawBuildingRow(zStart, zEnd, far, farColor, 70, 6, 'school-far');
+          drawBuildingRow(zStart, zEnd, near, nearColor, 50, 5, 'school-near', true);
+        } else if (z.key === 'college') {
+          drawBuildingRow(zStart, zEnd, far, farColor, 95, 4, 'college-far');
+          drawBuildingRow(zStart, zEnd, near, nearColor, 60, 5, 'college-near', true, true);
+        } else if (z.key === 'aiWorkshop') {
+          drawBuildingRow(zStart, zEnd, far, farColor, 80, 5, 'ai-far');
+          drawBuildingRow(zStart, zEnd, near, nearColor, 55, 6, 'ai-near', true, false, true);
+        } else if (z.key === 'business') {
+          drawBuildingRow(zStart, zEnd, far, farColor, 140, 6, 'biz-far');
+          drawBuildingRow(zStart, zEnd, near, nearColor, 90, 7, 'biz-near', true);
+        } else if (z.key === 'heroverse') {
+          drawBuildingRow(zStart, zEnd, far, farColor, 170, 5, 'hero-far', false, false, false, true);
+          drawBuildingRow(zStart, zEnd, near, nearColor, 110, 6, 'hero-near', false, false, false, true);
+        }
+
+        drawZoneSign(zStart, zEnd, z);
+      });
+    }
+
+    // a big, unmistakable signboard naming the theme of the zone (SCHOOL / COLLEGE / OFFICE / etc.)
+    // so the setting is explicit rather than left to background silhouettes alone.
+    function drawZoneSign(zStart, zEnd, z) {
+      const gy = groundLevelY();
+      const signWorldX = zStart + 90; // near the entrance of the zone
+      const sx = signWorldX - camX;
+      if (sx < -260 || sx > (canvas._cssW || 900) + 260) return;
+
+      const longText = z.sign.length > 14;
+      const signFontPx = longText ? 15 : 22;
+      const postH = 118, boardW = Math.max(190, z.sign.length * (longText ? 10.5 : 17)), boardH = 54;
+      const topY = gy - postH;
+
+      ctx.save();
+      // posts
+      ctx.fillStyle = shadeColor(z.ground, -25);
+      ctx.fillRect(sx - 6, topY + boardH - 4, 8, postH - boardH + 4);
+      ctx.fillRect(sx + boardW - 8 + 6, topY + boardH - 4, 8, postH - boardH + 4);
+
+      // board
+      ctx.fillStyle = 'rgba(10,10,20,0.82)';
+      roundRect(sx - boardW / 2, topY, boardW, boardH, 10); ctx.fill();
+      ctx.lineWidth = 3; ctx.strokeStyle = z.accent; ctx.stroke();
+
+      // little emblem icon on the left of the board
+      ctx.font = '22px sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      ctx.fillText(z.place, sx - boardW / 2 + 26, topY + boardH / 2 + 1);
+
+      // bold zone-theme text, e.g. "SCHOOL" / "COLLEGE" / "OFFICE"
+      ctx.fillStyle = z.accent;
+      ctx.shadowColor = z.accent; ctx.shadowBlur = 10;
+      ctx.font = `bold ${signFontPx}px 'Bangers', cursive`;
+      ctx.letterSpacing = '1px';
+      ctx.fillText(z.sign, sx + 14, topY + boardH / 2 + 1);
+      ctx.restore();
+    }
+
+    // generic repeating "row of buildings" drawer, parameterized so each zone gets its own look
+    function drawBuildingRow(zStart, zEnd, parallax, color, baseH, count, seedKey, windows, columns, circuits, glowSpires) {
+      const gy = groundLevelY();
+      const span = zEnd - zStart;
+      const step = span / count;
+      ctx.save();
+      for (let i = -1; i <= count; i++) {
+        const seed = (i * 928371 + zStart * 13 + seedKey.length * 7) % 97;
+        const bh = baseH + (seed % 50);
+        const bw = step * 0.55;
+        const worldX = zStart + i * step;
+        const finalX = worldX - camX; // draw at true world position so each zone's landmarks line up correctly
+        const bxPos = finalX - bw / 2;
+        const byPos = gy - bh;
+
+        ctx.globalAlpha = parallax < 0.5 ? 0.6 : 0.9;
+        ctx.fillStyle = color;
+        if (glowSpires) {
+          ctx.shadowColor = '#ffe25c'; ctx.shadowBlur = 18;
+          ctx.fillRect(bxPos, byPos, bw, bh);
+          ctx.shadowBlur = 0;
+          ctx.fillStyle = '#ffe98a';
+          ctx.beginPath(); ctx.arc(bxPos + bw / 2, byPos - 6, 6, 0, Math.PI * 2); ctx.fill();
+        } else {
+          ctx.fillRect(bxPos, byPos, bw, bh);
+        }
+        // pitched roof for school
+        if (seedKey.indexOf('school') === 0) {
+          ctx.fillStyle = shadeColor(color, -20);
+          ctx.beginPath(); ctx.moveTo(bxPos - 4, byPos); ctx.lineTo(bxPos + bw / 2, byPos - 18); ctx.lineTo(bxPos + bw + 4, byPos); ctx.closePath(); ctx.fill();
+        }
+        // columns for college
+        if (columns) {
+          ctx.fillStyle = shadeColor(color, 40);
+          for (let c = 0; c < 4; c++) ctx.fillRect(bxPos + 6 + c * (bw - 12) / 4, byPos + 8, 4, bh - 16);
+          // clock tower on the middle building
+          if (i === Math.floor(count / 2)) {
+            ctx.fillStyle = shadeColor(color, -10);
+            ctx.fillRect(bxPos + bw / 2 - 8, byPos - 26, 16, 26);
+            ctx.fillStyle = '#ffe98a';
+            ctx.beginPath(); ctx.arc(bxPos + bw / 2, byPos - 26, 7, 0, Math.PI * 2); ctx.fill();
+          }
+        }
+        // window grid (used by school/near, college/near, business)
+        if (windows) {
+          ctx.fillStyle = 'rgba(255,232,150,0.55)';
+          const cols = Math.max(2, Math.floor(bw / 16)), rows = Math.max(2, Math.floor(bh / 20));
+          for (let cx2 = 0; cx2 < cols; cx2++) for (let ry = 0; ry < rows; ry++) {
+            if ((cx2 + ry + seed) % 3 === 0) continue;
+            ctx.fillRect(bxPos + 6 + cx2 * (bw - 12) / cols, byPos + 8 + ry * (bh - 16) / rows, 6, 8);
+          }
+        }
+        // circuit dots + antenna for AI workshop
+        if (circuits) {
+          ctx.strokeStyle = '#7ce0ff'; ctx.lineWidth = 1.5; ctx.globalAlpha = 0.7;
+          ctx.beginPath(); ctx.moveTo(bxPos + 6, byPos + bh * 0.4); ctx.lineTo(bxPos + bw - 6, byPos + bh * 0.4); ctx.stroke();
+          ctx.beginPath(); ctx.moveTo(bxPos + bw * 0.5, byPos + 8); ctx.lineTo(bxPos + bw * 0.5, byPos + bh - 8); ctx.stroke();
+          ctx.fillStyle = '#7ce0ff';
+          ctx.beginPath(); ctx.arc(bxPos + bw * 0.5, byPos + bh * 0.4, 3, 0, Math.PI * 2); ctx.fill();
+          // antenna
+          ctx.strokeStyle = shadeColor(color, -10); ctx.lineWidth = 2;
+          ctx.beginPath(); ctx.moveTo(bxPos + bw * 0.5, byPos); ctx.lineTo(bxPos + bw * 0.5, byPos - 16); ctx.stroke();
+          ctx.fillStyle = '#ff6b6b'; ctx.beginPath(); ctx.arc(bxPos + bw * 0.5, byPos - 16, 3, 0, Math.PI * 2); ctx.fill();
+        }
+      }
+      ctx.restore();
+      ctx.globalAlpha = 1;
+    }
+
+    function drawGround() {
+      const w = canvas._cssW || window.innerWidth, h = canvas._cssH || window.innerHeight;
+      const gy = groundLevelY();
+      const centerWorldX = camX + w / 2;
+      const { zi, nextZi, t } = zoneBlendAt(centerWorldX);
+      ctx.fillStyle = lerpColor(ZONES[zi].ground, ZONES[nextZi].ground, t);
+      ctx.fillRect(0, gy, w, h - gy);
+      ctx.globalAlpha = 0.85;
+      ctx.fillStyle = lerpColor(ZONES[zi].accent, ZONES[nextZi].accent, t);
+      ctx.fillRect(0, gy, w, 6);
+      ctx.globalAlpha = 1;
+    }
+
+    function drawPlatforms() {
+      platforms.forEach(p => {
+        const sx = p.x - camX;
+        const zi = zoneIndexAt(p.x);
+        ctx.fillStyle = ZONES[zi].accent;
+        ctx.fillRect(sx, p.y, p.w, p.h);
+        ctx.fillStyle = 'rgba(0,0,0,0.25)';
+        ctx.fillRect(sx, p.y + p.h - 4, p.w, 4);
+      });
+    }
+
+    function drawGates() {
+      const gy = groundLevelY();
+      gates.forEach(g => {
+        if (!g.active) return;
+        g.pulse += 0.08;
+        const sx = g.x - camX;
+        if (sx < -60 || sx > (canvas._cssW || 800) + 60) return;
+        const alpha = 0.35 + Math.sin(g.pulse) * 0.15;
+        ctx.save();
+        ctx.globalAlpha = alpha;
+        const grad = ctx.createLinearGradient(sx - 14, gy - 220, sx + 14, gy);
+        grad.addColorStop(0, '#ff8f8f'); grad.addColorStop(1, '#ffd23f');
+        ctx.fillStyle = grad;
+        ctx.fillRect(sx - 9, gy - 220, 18, 220);
+        ctx.shadowColor = '#ff8f8f'; ctx.shadowBlur = 20;
+        ctx.fillRect(sx - 4, gy - 220, 8, 220);
+        ctx.restore();
+      });
+    }
+
+    function roundRect(x, y, w, h, r) {
+      ctx.beginPath(); ctx.moveTo(x + r, y);
+      ctx.arcTo(x + w, y, x + w, y + h, r); ctx.arcTo(x + w, y + h, x, y + h, r);
+      ctx.arcTo(x, y + h, x, y, r); ctx.arcTo(x, y, x + w, y, r); ctx.closePath();
+    }
+
+    function drawPlayer() {
+      const gy = groundLevelY();
+      const stage = currentStage();
+      const sx = player.x - camX, sy = player.y;
+      const scale = stage.scale;
+      const h = player.h * scale;
+      const cx0 = sx + player.w / 2, cyBase = sy + player.h;
+      const blink = player.invulnTimer > 0 && Math.floor(player.invulnTimer / 4) % 2 === 0;
+      if (blink) ctx.globalAlpha = 0.4;
+
+      ctx.save(); ctx.translate(cx0, cyBase); ctx.scale(player.facing, 1);
+
+      if (stage.glow > 0) {
+        ctx.save(); ctx.globalAlpha = 0.35; ctx.shadowColor = stage.armor; ctx.shadowBlur = stage.glow;
+        ctx.fillStyle = stage.armor;
+        ctx.beginPath(); ctx.ellipse(0, -h * 0.55, 34 * scale, 30 * scale, 0, 0, Math.PI * 2); ctx.fill();
+        ctx.restore();
+      }
+
+      const legSwing = player.onGround ? Math.sin(player.runPhase) * 10 : 6;
+      ctx.strokeStyle = shadeColor(stage.armor, -30); ctx.lineWidth = 6 * scale; ctx.lineCap = 'round';
+      ctx.beginPath(); ctx.moveTo(-4 * scale, -h * 0.35); ctx.lineTo(-4 * scale + legSwing * scale * 0.4, 0); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(4 * scale, -h * 0.35); ctx.lineTo(4 * scale - legSwing * scale * 0.4, 0); ctx.stroke();
+
+      if (stage.cape) {
+        const flap = Math.sin(player.runPhase * 0.7) * 8;
+        ctx.fillStyle = stage.armor;
+        ctx.beginPath();
+        ctx.moveTo(-6 * scale, -h * 0.9);
+        ctx.quadraticCurveTo(-26 * scale - flap, -h * 0.5, -15 * scale - flap, -2);
+        ctx.quadraticCurveTo(-8 * scale, -h * 0.3, -6 * scale, -h * 0.6);
+        ctx.closePath(); ctx.fill();
+      }
+
+      ctx.fillStyle = stage.body; roundRect(-10 * scale, -h * 0.95, 20 * scale, h * 0.6, 6 * scale); ctx.fill();
+      ctx.fillStyle = stage.armor; roundRect(-8 * scale, -h * 0.9, 16 * scale, h * 0.28, 5 * scale); ctx.fill();
+
+      if (stage.glow > 0) {
+        ctx.fillStyle = '#fff8c9'; ctx.shadowColor = '#fff8c9'; ctx.shadowBlur = stage.glow * 0.6;
+        ctx.beginPath(); ctx.arc(0, -h * 0.72, 3.4 * scale, 0, Math.PI * 2); ctx.fill(); ctx.shadowBlur = 0;
+      }
+
+      const armSwing = player.onGround ? Math.sin(player.runPhase + Math.PI) * 8 : -4;
+      ctx.strokeStyle = stage.body; ctx.lineWidth = 6 * scale;
+      ctx.beginPath(); ctx.moveTo(9 * scale, -h * 0.85); ctx.lineTo(9 * scale + armSwing * scale * 0.4, -h * 0.55); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(-9 * scale, -h * 0.85); ctx.lineTo(-9 * scale - armSwing * scale * 0.4, -h * 0.55); ctx.stroke();
+
+      ctx.fillStyle = '#ffd8b0'; ctx.beginPath(); ctx.arc(0, -h * 1.05, 8.5 * scale, 0, Math.PI * 2); ctx.fill();
+      if (player.stage >= 2) { ctx.fillStyle = stage.armor; ctx.beginPath(); ctx.arc(0, -h * 1.05, 8.5 * scale, Math.PI * 1.1, Math.PI * 1.9); ctx.fill(); }
+      ctx.fillStyle = '#222'; ctx.beginPath(); ctx.arc(2.6 * scale, -h * 1.06, 1.3 * scale, 0, Math.PI * 2); ctx.fill();
+      // little smile - keeps the hero looking friendly & positive
+      ctx.strokeStyle = '#a15a3a'; ctx.lineWidth = 1.2 * scale;
+      ctx.beginPath(); ctx.arc(1.5 * scale, -h * 1.0, 3 * scale, 0.15 * Math.PI, 0.75 * Math.PI); ctx.stroke();
+
+      ctx.restore(); ctx.globalAlpha = 1;
+    }
+
+    function drawEnemies() {
+      const gy = groundLevelY();
+      const w = canvas._cssW || window.innerWidth;
+      enemies.forEach(e => {
+        if (!e.alive) return;
+        const sx = e.x - camX, sy = gy - e.h / 2, bob = Math.sin(e.wobble * 2) * 4;
+        if (sx < -140 || sx > w + 140) return; // skip offscreen villains - cheap perf win
+        ctx.save(); ctx.translate(sx, sy + bob);
+        ctx.fillStyle = 'rgba(0,0,0,0.2)';
+        ctx.beginPath(); ctx.ellipse(0, e.h / 2 - bob + 6, e.w * 0.4, 6, 0, 0, Math.PI * 2); ctx.fill();
+
+        drawVillainCharacter(e);
+
+        if (!e.boss) {
+          for (let i = 0; i < e.maxHp; i++) {
+            ctx.fillStyle = i < e.hp ? '#ffe25c' : 'rgba(255,255,255,0.25)';
+            ctx.beginPath(); ctx.arc(-e.w / 2 + 8 + i * 10, -e.h / 2 - 10, 3, 0, Math.PI * 2); ctx.fill();
+          }
+        }
+        ctx.restore();
+      });
+    }
+
+    /* ---- cartoon villain artwork -------------------------------------------------------------
+       Each "inner struggle" enemy is now a small humanoid character (head, torso, arms, legs —
+       built the same way drawPlayer() builds the hero) instead of a floating blob or emoji, so
+       they read as actual cartoon characters facing off against the hero. Call site has already
+       translated to the enemy's screen center, with local y=0 at mid-height and y=+h/2 at the feet. */
+    function drawVillainCharacter(e) {
+      const d = e.def, w = e.w, h = e.h, t = e.wobble;
+      const jit = e.boss ? Math.sin(t * 4) * 1.5 : 0; // subtle boss tremor
+      ctx.save();
+      if (jit) ctx.translate(jit, 0);
+
+      switch (e.type) {
+
+        case 'selfDoubt': { // small, timid, hunched figure with hands clasped and a "?" worry bubble
+          const g = humanoidBody(w, h, d, { legGap: 0.16, armPose: 'clasped', slouch: 0.25, headScale: 0.95 });
+          ctx.strokeStyle = d.dark; ctx.lineWidth = 2.5; ctx.lineCap = 'round';
+          ctx.beginPath(); ctx.moveTo(0, g.headY - g.headR * 1.3);
+          ctx.quadraticCurveTo(g.headR * 0.7, g.headY - g.headR * 2.1, g.headR * 0.5, g.headY - g.headR * 1.9); ctx.stroke();
+          ctx.fillStyle = d.dark; ctx.font = `bold ${Math.round(g.headR * 1.1)}px 'Bangers', cursive`;
+          ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+          ctx.fillText('?', g.headR * 0.55, g.headY - g.headR * 2.0 + Math.sin(t * 2) * 2);
+          cartoonEyes(-g.headR * 0.4, g.headY, g.headR * 0.85, 'worried');
+          cartoonEyes(g.headR * 0.4, g.headY, g.headR * 0.85, 'worried');
+          cartoonMouth(0, g.headY + g.headR * 0.55, g.headR * 0.5, 'oh');
+          break;
+        }
+
+        case 'negativeThinking': { // hunched figure walking under its own personal storm cloud
+          const g = humanoidBody(w, h, d, { legGap: 0.2, armPose: 'hang', slouch: 0.35, headScale: 1 });
+          // little raincloud hovering just above the head
+          ctx.fillStyle = shadeColor(d.color, -8);
+          ctx.beginPath();
+          ctx.arc(-w * 0.14, g.headY - g.headR * 1.7, g.headR * 0.55, Math.PI * 0.5, Math.PI * 1.5);
+          ctx.arc(0, g.headY - g.headR * 2.0, g.headR * 0.62, Math.PI * 1.0, Math.PI * 1.9);
+          ctx.arc(w * 0.16, g.headY - g.headR * 1.7, g.headR * 0.5, Math.PI * 1.35, Math.PI * 0.5);
+          ctx.closePath(); ctx.fill();
+          ctx.strokeStyle = d.dark; ctx.lineWidth = 1.5; ctx.stroke();
+          // angry zig-zag eyebrows
+          ctx.strokeStyle = d.dark; ctx.lineWidth = 2; ctx.lineJoin = 'round';
+          ctx.beginPath(); ctx.moveTo(-g.headR * 0.7, g.headY - g.headR * 0.35); ctx.lineTo(-g.headR * 0.3, g.headY - g.headR * 0.6); ctx.lineTo(-g.headR * 0.05, g.headY - g.headR * 0.3); ctx.stroke();
+          ctx.beginPath(); ctx.moveTo(g.headR * 0.05, g.headY - g.headR * 0.3); ctx.lineTo(g.headR * 0.3, g.headY - g.headR * 0.6); ctx.lineTo(g.headR * 0.7, g.headY - g.headR * 0.35); ctx.stroke();
+          cartoonEyes(-g.headR * 0.42, g.headY, g.headR * 0.7, 'angry');
+          cartoonEyes(g.headR * 0.42, g.headY, g.headR * 0.7, 'angry');
+          cartoonMouth(0, g.headY + g.headR * 0.6, g.headR * 0.55, 'frown');
+          break;
+        }
+
+        case 'fear': { // wide-eyed, knock-kneed figure with jagged spiked-up hair, trembling
+          const g = humanoidBody(w, h, d, { legGap: 0.08, armPose: 'wide', slouch: 0, headScale: 1.05 });
+          // jagged spiky hair
+          ctx.fillStyle = shadeColor(d.color, -18);
+          ctx.beginPath();
+          for (let i = -2; i <= 2; i++) {
+            const hx = i * g.headR * 0.42, hy = g.headY - g.headR * (i % 2 === 0 ? 1.25 : 0.95);
+            i === -2 ? ctx.moveTo(hx, hy) : ctx.lineTo(hx, hy);
+          }
+          ctx.lineTo(g.headR * 0.9, g.headY - g.headR * 0.3); ctx.lineTo(-g.headR * 0.9, g.headY - g.headR * 0.3); ctx.closePath(); ctx.fill();
+          cartoonEyes(-g.headR * 0.42, g.headY + g.headR * 0.1, g.headR * 0.95, 'shock');
+          cartoonEyes(g.headR * 0.42, g.headY + g.headR * 0.1, g.headR * 0.95, 'shock');
+          cartoonMouth(0, g.headY + g.headR * 0.75, g.headR * 0.4, 'oh');
+          break;
+        }
+
+        case 'givingUp': { // slouched, shoulders and head drooping low, arms hanging limp
+          const g = humanoidBody(w, h, d, { legGap: 0.18, armPose: 'hang', slouch: 0.55, headScale: 1 });
+          cartoonEyes(-g.headR * 0.4, g.headY + g.headR * 0.1, g.headR * 0.65, 'sleepy');
+          cartoonEyes(g.headR * 0.4, g.headY + g.headR * 0.1, g.headR * 0.65, 'sleepy');
+          cartoonMouth(0, g.headY + g.headR * 0.6, g.headR * 0.55, 'frown');
+          break;
+        }
+
+        case 'laziness': { // leaning back on its heels, eyes shut, drooling, floating Z's
+          const g = humanoidBody(w, h, d, { legGap: 0.3, armPose: 'hips', slouch: -0.2, headScale: 1.08 });
+          ctx.strokeStyle = d.dark; ctx.lineWidth = 2; ctx.lineCap = 'round';
+          ctx.beginPath(); ctx.moveTo(-g.headR * 0.4, g.headY); ctx.quadraticCurveTo(-g.headR * 0.2, g.headY + g.headR * 0.15, 0, g.headY); ctx.stroke();
+          ctx.beginPath(); ctx.moveTo(0, g.headY); ctx.quadraticCurveTo(g.headR * 0.2, g.headY + g.headR * 0.15, g.headR * 0.4, g.headY); ctx.stroke();
+          cartoonMouth(0, g.headY + g.headR * 0.6, g.headR * 0.35, 'drool');
+          ctx.fillStyle = d.dark; ctx.font = `bold ${Math.round(g.headR * 0.9)}px 'Bangers', cursive`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+          ctx.globalAlpha = 0.85; ctx.fillText('Z', g.headR * 1.6, g.headY - g.headR * 1.3 + Math.sin(t * 2) * 3);
+          ctx.font = `bold ${Math.round(g.headR * 0.6)}px 'Bangers', cursive`;
+          ctx.fillText('z', g.headR * 2.2, g.headY - g.headR * 1.9 + Math.sin(t * 2 + 1) * 3);
+          ctx.globalAlpha = 1;
+          break;
+        }
+
+        case 'comparison': { // two-tone humanoid split down the middle, smugly checking itself out
+          const g = humanoidBody(w, h, d, { legGap: 0.2, armPose: 'hips', slouch: 0, headScale: 1, twoTone: true });
+          cartoonEyes(-g.headR * 0.42, g.headY, g.headR * 0.6, 'flat');
+          cartoonEyes(g.headR * 0.42, g.headY - g.headR * 0.1, g.headR * 0.8, 'smug');
+          cartoonMouth(0, g.headY + g.headR * 0.65, g.headR * 0.6, 'smirk');
+          break;
+        }
+
+        case 'finalBoss': { // tall shadow-figure: spiked crown, tattered cape, three glowing eyes, jagged maw
+          const g = humanoidBody(w, h, d, { legGap: 0.16, armPose: 'fists', slouch: 0, headScale: 1, cape: true });
+          // spiked crown
+          ctx.fillStyle = shadeColor(d.color, -14);
+          ctx.beginPath();
+          for (let i = -3; i <= 3; i++) {
+            const hx = i * g.headR * 0.32, hy = g.headY - g.headR * (Math.abs(i) % 2 === 0 ? 1.5 : 1.05);
+            i === -3 ? ctx.moveTo(hx, hy) : ctx.lineTo(hx, hy);
+          }
+          ctx.lineTo(g.headR * 1.05, g.headY - g.headR * 0.2); ctx.lineTo(-g.headR * 1.05, g.headY - g.headR * 0.2); ctx.closePath();
+          ctx.fill(); ctx.strokeStyle = '#ff6b6b'; ctx.lineWidth = 1.5; ctx.shadowColor = '#ff6b6b'; ctx.shadowBlur = 10; ctx.stroke(); ctx.shadowBlur = 0;
+          // three glowing red eyes
+          [-g.headR * 0.5, 0, g.headR * 0.5].forEach((ex, i) => {
+            ctx.fillStyle = '#ff3b3b'; ctx.shadowColor = '#ff3b3b'; ctx.shadowBlur = 12;
+            ctx.beginPath(); ctx.arc(ex, g.headY + (i === 1 ? -g.headR * 0.25 : g.headR * 0.05), g.headR * 0.16, 0, Math.PI * 2); ctx.fill();
+            ctx.shadowBlur = 0;
+          });
+          // jagged menacing mouth
+          ctx.fillStyle = '#1a1420';
+          const my = g.headY + g.headR * 0.7, mw = g.headR * 0.65;
+          ctx.beginPath(); ctx.moveTo(-mw, my); ctx.lineTo(mw, my); ctx.lineTo(mw * 0.7, my + g.headR * 0.5); ctx.lineTo(mw * 0.35, my + g.headR * 0.2);
+          ctx.lineTo(0, my + g.headR * 0.5); ctx.lineTo(-mw * 0.35, my + g.headR * 0.2); ctx.lineTo(-mw * 0.7, my + g.headR * 0.5); ctx.closePath(); ctx.fill();
+          break;
+        }
+
+        default: {
+          const g = humanoidBody(w, h, d, {});
+          cartoonEyes(-g.headR * 0.4, g.headY, g.headR * 0.7, 'flat');
+          cartoonEyes(g.headR * 0.4, g.headY, g.headR * 0.7, 'flat');
+          cartoonMouth(0, g.headY + g.headR * 0.6, g.headR * 0.5, 'frown');
+        }
+      }
+      ctx.restore();
+    }
+
+    // shared humanoid figure builder — draws legs, torso, arms, and a head circle, mirroring the
+    // same body language drawPlayer() uses for the hero, then hands back head geometry so each
+    // villain type can lay expressive eyes/mouth/accessories on top.
+    function humanoidBody(w, h, d, opts) {
+      const legGap = opts.legGap != null ? opts.legGap : 0.2;
+      const armPose = opts.armPose || 'hang';
+      const slouch = opts.slouch || 0; // 0 = upright, positive = hunched forward/down, negative = leaning back
+      const headScale = opts.headScale || 1;
+      const cape = !!opts.cape;
+
+      const headR = h * 0.24 * headScale;
+      const torsoW = w * 0.42, torsoH = h * 0.4;
+      const torsoY = -h * 0.02 + slouch * h * 0.1;
+      const headY = torsoY - torsoH * 0.5 - headR * 0.75 + slouch * h * 0.12;
+      const hipY = torsoY + torsoH * 0.5;
+      const footY = h * 0.44;
+
+      if (cape) {
+        ctx.fillStyle = shadeColor(d.color, -20);
+        ctx.beginPath();
+        ctx.moveTo(-torsoW * 0.4, torsoY - torsoH * 0.4);
+        ctx.quadraticCurveTo(-torsoW * 1.5, hipY * 0.4, -torsoW * 0.9, footY * 0.85);
+        ctx.lineTo(torsoW * 0.9, footY * 0.85);
+        ctx.quadraticCurveTo(torsoW * 1.5, hipY * 0.4, torsoW * 0.4, torsoY - torsoH * 0.4);
+        ctx.closePath(); ctx.fill();
+      }
+
+      // legs
+      ctx.strokeStyle = d.dark; ctx.lineWidth = Math.max(3, w * 0.1); ctx.lineCap = 'round';
+      ctx.beginPath(); ctx.moveTo(-torsoW * legGap * 2, hipY); ctx.lineTo(-torsoW * legGap * 2, footY); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(torsoW * legGap * 2, hipY); ctx.lineTo(torsoW * legGap * 2, footY); ctx.stroke();
+
+      // arms, per pose
+      ctx.strokeStyle = d.color; ctx.lineWidth = Math.max(3, w * 0.09); ctx.lineCap = 'round';
+      const shY = torsoY - torsoH * 0.32;
+      if (armPose === 'hang') {
+        ctx.beginPath(); ctx.moveTo(-torsoW * 0.55, shY); ctx.lineTo(-torsoW * 0.68, hipY + 8); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(torsoW * 0.55, shY); ctx.lineTo(torsoW * 0.68, hipY + 8); ctx.stroke();
+      } else if (armPose === 'clasped') {
+        ctx.beginPath(); ctx.moveTo(-torsoW * 0.55, shY); ctx.lineTo(-torsoW * 0.1, torsoY + 4); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(torsoW * 0.55, shY); ctx.lineTo(torsoW * 0.1, torsoY + 4); ctx.stroke();
+      } else if (armPose === 'wide') {
+        ctx.beginPath(); ctx.moveTo(-torsoW * 0.55, shY); ctx.lineTo(-torsoW * 1.1, shY - 6); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(torsoW * 0.55, shY); ctx.lineTo(torsoW * 1.1, shY - 6); ctx.stroke();
+      } else if (armPose === 'hips') {
+        ctx.beginPath(); ctx.moveTo(-torsoW * 0.55, shY); ctx.lineTo(-torsoW * 0.55, hipY - 4); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(torsoW * 0.55, shY); ctx.lineTo(torsoW * 0.55, hipY - 4); ctx.stroke();
+      } else if (armPose === 'fists') {
+        ctx.beginPath(); ctx.moveTo(-torsoW * 0.6, shY); ctx.lineTo(-torsoW * 0.72, torsoY + torsoH * 0.2); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(torsoW * 0.6, shY); ctx.lineTo(torsoW * 0.72, torsoY + torsoH * 0.2); ctx.stroke();
+        ctx.fillStyle = d.dark;
+        ctx.beginPath(); ctx.arc(-torsoW * 0.72, torsoY + torsoH * 0.2, w * 0.07, 0, Math.PI * 2); ctx.fill();
+        ctx.beginPath(); ctx.arc(torsoW * 0.72, torsoY + torsoH * 0.2, w * 0.07, 0, Math.PI * 2); ctx.fill();
+      }
+
+      // torso
+      if (opts.twoTone) {
+        ctx.save(); roundRect(-torsoW / 2, torsoY - torsoH / 2, torsoW, torsoH, torsoW * 0.28); ctx.clip();
+        ctx.fillStyle = shadeColor(d.color, 22); ctx.fillRect(-torsoW / 2, torsoY - torsoH / 2, torsoW / 2, torsoH);
+        ctx.fillStyle = shadeColor(d.color, -16); ctx.fillRect(0, torsoY - torsoH / 2, torsoW / 2, torsoH);
+        ctx.restore();
+      } else {
+        ctx.fillStyle = d.color;
+        roundRect(-torsoW / 2, torsoY - torsoH / 2, torsoW, torsoH, torsoW * 0.28); ctx.fill();
+      }
+      ctx.strokeStyle = d.dark; ctx.lineWidth = 2; ctx.stroke();
+
+      // head
+      if (opts.twoTone) {
+        ctx.save(); ctx.beginPath(); ctx.arc(0, headY, headR, 0, Math.PI * 2); ctx.clip();
+        ctx.fillStyle = shadeColor(d.color, 22); ctx.fillRect(-headR, headY - headR, headR, headR * 2);
+        ctx.fillStyle = shadeColor(d.color, -16); ctx.fillRect(0, headY - headR, headR, headR * 2);
+        ctx.restore();
+      } else {
+        ctx.fillStyle = d.color;
+        ctx.beginPath(); ctx.arc(0, headY, headR, 0, Math.PI * 2); ctx.fill();
+      }
+      ctx.strokeStyle = d.dark; ctx.lineWidth = 2; ctx.stroke();
+
+      return { headY, headR, torsoY, torsoW, torsoH, hipY, footY };
+    }
+
+    // small reusable cartoon eye — sclera + pupil, with a handful of expressive styles
+    function cartoonEyes(x, y, size, style) {
+      ctx.save(); ctx.translate(x, y);
+      ctx.fillStyle = '#fff';
+      ctx.beginPath(); ctx.ellipse(0, 0, size * 0.5, size * (style === 'sleepy' ? 0.22 : 0.55), 0, 0, Math.PI * 2); ctx.fill();
+      ctx.strokeStyle = 'rgba(0,0,0,0.25)'; ctx.lineWidth = 1; ctx.stroke();
+      if (style !== 'sleepy') {
+        ctx.fillStyle = '#221c30';
+        const pr = style === 'shock' ? size * 0.3 : size * 0.22;
+        ctx.beginPath(); ctx.arc(style === 'smug' ? size * 0.08 : 0, 0, pr, 0, Math.PI * 2); ctx.fill();
+        ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(-pr * 0.3, -pr * 0.3, pr * 0.3, 0, Math.PI * 2); ctx.fill();
+      }
+      ctx.restore();
+    }
+
+    // small reusable cartoon mouth shapes
+    function cartoonMouth(x, y, size, style) {
+      ctx.save(); ctx.translate(x, y);
+      ctx.strokeStyle = 'rgba(0,0,0,0.55)'; ctx.fillStyle = 'rgba(0,0,0,0.55)'; ctx.lineWidth = 2.4; ctx.lineCap = 'round';
+      if (style === 'frown') { ctx.beginPath(); ctx.arc(0, size * 0.6, size, Math.PI * 1.15, Math.PI * 1.85); ctx.stroke(); }
+      else if (style === 'oh') { ctx.beginPath(); ctx.ellipse(0, 0, size * 0.45, size * 0.6, 0, 0, Math.PI * 2); ctx.fill(); }
+      else if (style === 'smirk') { ctx.beginPath(); ctx.arc(0, 0, size, Math.PI * 0.1, Math.PI * 0.55); ctx.stroke(); }
+      else if (style === 'drool') {
+        ctx.beginPath(); ctx.arc(0, 0, size, Math.PI * 0.15, Math.PI * 0.85); ctx.stroke();
+        ctx.fillStyle = 'rgba(150,210,255,0.7)'; ctx.beginPath(); ctx.ellipse(size * 0.7, size * 0.6, size * 0.18, size * 0.3, 0, 0, Math.PI * 2); ctx.fill();
+      }
+      else { ctx.beginPath(); ctx.arc(0, 0, size, 0.15 * Math.PI, 0.85 * Math.PI); ctx.stroke(); }
+      ctx.restore();
+    }
+    function drawProjectiles() {
+      const w = canvas._cssW || window.innerWidth;
+      projectiles.forEach(p => {
+        const sx = p.x - camX;
+        if (sx < -40 || sx > w + 40) return;
+        ctx.save(); ctx.shadowColor = p.color; ctx.shadowBlur = 16;
+        ctx.font = '24px sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+        ctx.fillText(p.emoji, sx, p.y); ctx.restore();
+      });
+    }
+    function drawPowerups() {
+      const gy = groundLevelY();
+      const w = canvas._cssW || window.innerWidth;
+      powerups.forEach(pu => {
+        if (pu.taken) return;
+        const sx = pu.x - camX, sy = gy - 90 + Math.sin(pu.bob) * 8;
+        if (sx < -60 || sx > w + 60) return;
+        ctx.save(); ctx.shadowColor = '#fff'; ctx.shadowBlur = 12;
+        ctx.font = '28px sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+        ctx.fillText(POWERUP_TYPES[pu.type].icon, sx, sy); ctx.restore();
+      });
+    }
+    function drawParticles() {
+      const w = canvas._cssW || window.innerWidth;
+      particles.forEach(pt => {
+        const sx = pt.x - camX;
+        if (sx < -30 || sx > w + 30) return;
+        ctx.save(); ctx.globalAlpha = Math.max(0, pt.life / pt.maxLife);
+        ctx.fillStyle = pt.color; ctx.shadowColor = pt.color; ctx.shadowBlur = 8;
+        ctx.beginPath(); ctx.arc(sx, pt.y, pt.size, 0, Math.PI * 2); ctx.fill(); ctx.restore();
+      });
+    }
+    function drawFloatingTexts() {
+      const w = canvas._cssW || window.innerWidth;
+      floatingTexts.forEach(t => {
+        const sx = t.x - camX;
+        if (sx < -80 || sx > w + 80) return;
+        ctx.save(); ctx.globalAlpha = Math.max(0, t.life / 90);
+        ctx.fillStyle = t.color; ctx.font = "bold 19px 'Poppins', sans-serif"; ctx.textAlign = 'center';
+        ctx.shadowColor = '#000'; ctx.shadowBlur = 4;
+        ctx.fillText(t.text, sx, t.y); ctx.restore();
+      });
+    }
+
+    function draw() {
+      const w = canvas._cssW || window.innerWidth, h = canvas._cssH || window.innerHeight;
+      ctx.clearRect(0, 0, w, h);
+
+      if (state !== 'playing' && state !== 'gameover') {
+        ctx.fillStyle = '#060814'; ctx.fillRect(0, 0, w, h);
+        ctx.save(); ctx.globalAlpha = 0.5;
+        for (let i = 0; i < 40; i++) {
+          const t = performance.now() * 0.0002 + i;
+          ctx.fillStyle = '#7ce0ff';
+          ctx.beginPath(); ctx.arc((Math.sin(t * 1.3 + i) * 0.5 + 0.5) * w, (i * 37 + performance.now() * 0.02) % h, 1.6, 0, Math.PI * 2); ctx.fill();
+        }
+        ctx.restore();
+        return;
+      }
+      if (!worldBuilt) return;
+
+      ctx.save();
+      if (shakeTime > 0) ctx.translate((Math.random() - 0.5) * shakeMag, (Math.random() - 0.5) * shakeMag);
+      drawBackground();
+      drawGround();
+      drawPlatforms();
+      drawGates();
+      drawPowerups();
+      drawEnemies();
+      drawPlayer();
+      drawProjectiles();
+      drawParticles();
+      drawFloatingTexts();
+      ctx.restore();
+    }
+
+    /* ------------------------------------------------------------------ 9. MAIN LOOP ------------------------------------------------------------------ */
+    function loop(now) {
+      update();
+      draw();
+      requestAnimationFrame(loop);
+    }
+    requestAnimationFrame(loop);
+  </script>
+</body>
+
+</html>
